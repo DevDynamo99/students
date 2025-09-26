@@ -1,0 +1,32 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: students-bd20
+    environment:
+      MYSQL_ROOT_PASSWORD: 9848
+      MYSQL_DATABASE: student
+    volumes:
+      - mysql_data:/var/lib/mysql   # ← persistent MySQL data
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: .
+    container_name: students-bd20
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8085
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/students?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 9848
+    ports:
+      - "8085:8085"
+    restart: unless-stopped
+
+volumes:
+  mysql_data: {}
